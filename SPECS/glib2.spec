@@ -1,6 +1,6 @@
 Name: glib2
 Version: 2.68.4
-Release:        16.1%{?dist}.3
+Release:        16.2%{?dist}.3
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -76,6 +76,8 @@ Patch: CVE-2025-4373.patch
 # https://gitlab.gnome.org/GNOME/glib/-/merge_requests/4356
 Patch: gdatetime-test.patch
 Patch: RHEL-114058.patch
+# CVE fixes for common criteria.
+Patch: cc-cve-patches.patch
 
 BuildRequires: chrpath
 BuildRequires: gcc
@@ -292,6 +294,11 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Tue Jun 30 2026 Jeremy Allison <jallison@ciq.com> - 2.68.4-16.2.3
+- Fix CVE-2025-13601: gconvert: Error out if g_escape_uri_string() would overflow
+- Fix CVE-2025-14087: gvariant-parser: Convert error handling code to use size_t
+- Fix CVE-2025-14512: gfileattribute: Fix integer overflow calculating escaping for byte strings
+
 * Mon Mar 23 2026 Max Spevack <max@ciq.com> - 2.68.4-16.1.3
 - Fix CVE-2025-3360
 
