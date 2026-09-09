@@ -1,6 +1,6 @@
 Name: glib2
 Version: 2.68.4
-Release:        16.2%{?dist}.3
+Release:        16.3%{?dist}.3
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -8,6 +8,10 @@ URL: http://www.gtk.org
 Source0: http://download.gnome.org/sources/glib/2.68/glib-%{version}.tar.xz
 # CVE-2025-3360 (amazon)
 Patch1: glib2-2.68.4-CVE-2025-3360.patch
+# CVE-2026-58014 — upstream backport
+Patch2: glib2-2.68.4-CVE-2026-58014.patch
+# CVE-2026-16118 — upstream backport
+Patch3: glib2-2.68.4-CVE-2026-16118.patch
 
 # Required for RHEL core crypto components policy. Good for Fedora too.
 # https://bugzilla.redhat.com/show_bug.cgi?id=1630260
@@ -294,6 +298,10 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Wed Sep 09 2026 Jason Rodriguez <jrodriguez@ciq.com> - 2.68.4-16.3.3
+- Fix CVE-2026-58014
+- Fix CVE-2026-16118
+
 * Tue Jun 30 2026 Jeremy Allison <jallison@ciq.com> - 2.68.4-16.2.3
 - Fix CVE-2025-13601: gconvert: Error out if g_escape_uri_string() would overflow
 - Fix CVE-2025-14087: gvariant-parser: Convert error handling code to use size_t
