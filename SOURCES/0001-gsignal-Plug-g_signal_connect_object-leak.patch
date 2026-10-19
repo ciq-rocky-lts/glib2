@@ -1,0 +1,88 @@
+From fcae58be217e1158eb2734d219f48b88b3cc7eb8 Mon Sep 17 00:00:00 2001
+From: Ray Strode <rstrode@redhat.com>
+Date: Tue, 13 Oct 2020 09:24:02 -0400
+Subject: [PATCH] gsignal: Plug g_signal_connect_object leak
+
+commit 916297be799ee001b4a214cc52c3b960bb0b5deb added a hash table
+to provide constant time lookups of signal handlers.
+
+Unfortunately, that commit neglected to remove handlers from
+g_signal_connect_object calls from the hash table that are
+disconnected implicitly when the associated object goes away.
+
+This commit addresses that bug by changing the closure invalidate
+handler associated with the signal connection to properly remove the
+handler from the hash table.
+---
+ gobject/gsignal.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/gobject/gsignal.c b/gobject/gsignal.c
+index b22dfcca8..fa7d9b274 100644
+--- a/gobject/gsignal.c
++++ b/gobject/gsignal.c
+@@ -3781,60 +3781,61 @@ add_invalid_closure_notify (Handler  *handler,
+ {
+   g_closure_add_invalidate_notifier (handler->closure, instance, invalid_closure_notify);
+   handler->has_invalid_closure_notify = 1;
+ }
+ 
+ static void
+ remove_invalid_closure_notify (Handler  *handler,
+ 			       gpointer  instance)
+ {
+   if (handler->has_invalid_closure_notify)
+     {
+       g_closure_remove_invalidate_notifier (handler->closure, instance, invalid_closure_notify);
+       handler->has_invalid_closure_notify = 0;
+     }
+ }
+ 
+ static void
+ invalid_closure_notify (gpointer  instance,
+ 		        GClosure *closure)
+ {
+   Handler *handler;
+   guint signal_id;
+ 
+   SIGNAL_LOCK ();
+ 
+   handler = handler_lookup (instance, 0, closure, &signal_id);
+   /* See https://bugzilla.gnome.org/show_bug.cgi?id=730296 for discussion about this... */
+   g_assert (handler != NULL);
+   g_assert (handler->closure == closure);
+ 
++  g_hash_table_remove (g_handlers, handler);
+   handler->sequential_number = 0;
+   handler->block_count = 1;
+   handler_unref_R (signal_id, instance, handler);
+ 
+   SIGNAL_UNLOCK ();
+ }
+ 
+ static const gchar*
+ type_debug_name (GType type)
+ {
+   if (type)
+     {
+       const char *name = g_type_name (type & ~G_SIGNAL_TYPE_STATIC_SCOPE);
+       return name ? name : "<unknown>";
+     }
+   else
+     return "<invalid>";
+ }
+ 
+ /**
+  * g_signal_accumulator_true_handled:
+  * @ihint: standard #GSignalAccumulator parameter
+  * @return_accu: standard #GSignalAccumulator parameter
+  * @handler_return: standard #GSignalAccumulator parameter
+  * @dummy: standard #GSignalAccumulator parameter
+  *
+  * A predefined #GSignalAccumulator for signals that return a
+  * boolean values. The behavior that this accumulator gives is
+  * that a return of %TRUE stops the signal emission: no further
+  * callbacks will be invoked, while a return of %FALSE allows
+-- 
+2.26.2
+
