@@ -1,6 +1,6 @@
 Name: glib2
 Version: 2.68.4
-Release:        18.1%{?dist}
+Release:        18.2%{?dist}
 Summary: A library of handy utility functions
 
 License: LGPLv2+
@@ -12,6 +12,8 @@ Patch1: glib2-2.68.4-CVE-2025-3360.patch
 Patch2: glib2-2.68.4-CVE-2026-58014.patch
 # CVE-2026-16118 — upstream backport
 Patch3: glib2-2.68.4-CVE-2026-16118.patch
+# CVE-2026-58016
+Patch4: glib2-2.68.4-CVE-2026-58016.patch
 
 # Required for RHEL core crypto components policy. Good for Fedora too.
 # https://bugzilla.redhat.com/show_bug.cgi?id=1630260
@@ -298,6 +300,9 @@ glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 %{_datadir}/installed-tests
 
 %changelog
+* Wed Nov 18 2026 pmp <packager@ciq.com> - 2.68.4-18.2
+- Fix CVE-2026-58016
+
 * Mon Nov 09 2026 Andrew Jorgensen <ajorgens@ciq.com> - 2.68.4-18.1
 - Rebase onto 2.68.4-18, which has the same code as 2.68.4-16.3
 - Sorts above the LTS 9.2 build, so 9.2 to 9.6 upgrades replace it
